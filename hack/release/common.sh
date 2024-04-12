@@ -152,6 +152,11 @@ buildDate() {
   local date_epoch
 
   date_epoch="${1}"
-
+  
+  # If on Macos  use a different date format: 
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+		date -u -r "${date_epoch}" "+%Y-%m-%dT%H:%M:%SZ" 2>/dev/null
+		return
+  fi
   date -u --date="@${date_epoch}" "+%Y-%m-%dT%H:%M:%SZ" 2>/dev/null
 }
