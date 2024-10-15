@@ -46,24 +46,21 @@ func (u Ubuntu2204) DefaultImages() []DefaultImageOutput {
 	// image provider will select these images in order, first match wins. This is why we chose to put Ubuntu2204Gen2containerd first in the defaultImages
 	return []DefaultImageOutput{
 		{
-			CommunityImage:   Ubuntu2204Gen2CommunityImage,
-			PublicGalleryURL: AKSUbuntuPublicGalleryURL,
+			ImageDefinition: Ubuntu2204Gen2CommunityImage,
 			Requirements: scheduling.NewRequirements(
 				scheduling.NewRequirement(v1.LabelArchStable, v1.NodeSelectorOpIn, corev1beta1.ArchitectureAmd64),
 				scheduling.NewRequirement(v1alpha2.LabelSKUHyperVGeneration, v1.NodeSelectorOpIn, v1alpha2.HyperVGenerationV2),
 			),
 		},
 		{
-			CommunityImage:   Ubuntu2204Gen1CommunityImage,
-			PublicGalleryURL: AKSUbuntuPublicGalleryURL,
+			ImageDefinition: Ubuntu2204Gen1CommunityImage,
 			Requirements: scheduling.NewRequirements(
 				scheduling.NewRequirement(v1.LabelArchStable, v1.NodeSelectorOpIn, corev1beta1.ArchitectureAmd64),
 				scheduling.NewRequirement(v1alpha2.LabelSKUHyperVGeneration, v1.NodeSelectorOpIn, v1alpha2.HyperVGenerationV1),
 			),
 		},
 		{
-			CommunityImage:   Ubuntu2204Gen2ArmCommunityImage,
-			PublicGalleryURL: AKSUbuntuPublicGalleryURL,
+			ImageDefinition: Ubuntu2204Gen2ArmCommunityImage,
 			Requirements: scheduling.NewRequirements(
 				scheduling.NewRequirement(v1.LabelArchStable, v1.NodeSelectorOpIn, corev1beta1.ArchitectureArm64),
 				scheduling.NewRequirement(v1alpha2.LabelSKUHyperVGeneration, v1.NodeSelectorOpIn, v1alpha2.HyperVGenerationV2),
