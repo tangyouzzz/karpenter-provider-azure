@@ -72,17 +72,20 @@ func (p *Provider) Get(ctx context.Context, nodeClass *v1alpha2.AKSNodeClass, in
 	defaultImages := imageFamily.DefaultImages()
 	for _, defaultImage := range defaultImages {
 		if err := instanceType.Requirements.Compatible(defaultImage.Requirements, v1alpha2.AllowUndefinedLabels); err == nil {
-
-			// Managed Karpenter will use the AKS Managed Shared Image Galleries
-			if options.FromContext(ctx).ManagedKarpenter {
-				return p.getImageIDSIG(ctx, defaultImage, nodeClass.Spec.GetImageVersion())
-			}
-			// Self Hosted Karpenter will use the Community Image Galleries, which are public and have lower scaling limits
-			return p.getImageIDCIG(ctx, defaultImage.PublicGalleryURL, defaultImage.ImageDefinition, nodeClass.Spec.GetImageVersion())
+			return p.GetLatestImageID(ctx, defaultImage, nodeClass.Spec.GetImageVersion())
 		}
 	}
 
 	return "", fmt.Errorf("no compatible images found for instance type %s", instanceType.Name)
+}
+
+func (p *Provider) GetLatestImageID(ctx context.Context, defaultImage DefaultImageOutput, imageVersion string) (string, error) {
+	// Managed Karpenter will use the AKS Managed Shared Image Galleries
+	if options.FromContext(ctx).ManagedKarpenter {
+		return p.getImageIDSIG(ctx, defaultImage, imageVersion)
+	}
+	// Self Hosted Karpenter will use the Community Image Galleries, which are public and have lower scaling limits
+	return p.getImageIDCIG(ctx, defaultImage.PublicGalleryURL, defaultImage.ImageDefinition, imageVersion)
 }
 
 func (p *Provider) KubeServerVersion(ctx context.Context) (string, error) {
@@ -111,13 +114,12 @@ func (p *Provider) getImageIDSIG(ctx context.Context, imgStub DefaultImageOutput
 		return imageID.(string), nil
 	}
 	if imageVersion == autoUpgradeMode {
-
 		versions, err := p.ListNodeImageVersions(ctx)
 		if err != nil {
 			return "", err
 		}
 		for _, version := range versions.Values {
-			imageID := fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SharedImageGallerySubscriptionID, imgStub.ImageDefinition, version.Version)
+			imageID := fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SharedImageGallerySubscriptionID, imgStub.GalleryResourceGroup, imgStub.GalleryName, imgStub.ImageDefinition, version.Version)
 			p.imageCache.Set(key, imageID, imageExpirationInterval)
 		}
 		// return the latest version of the image from the cache after we have caached all of the imageDefinitions
@@ -126,23 +128,22 @@ func (p *Provider) getImageIDSIG(ctx context.Context, imgStub DefaultImageOutput
 		}
 		return "", fmt.Errorf("failed to get the latest version of the image %s", imgStub.ImageDefinition)
 	}
-	// if the imageVersion is not set to autoUpgradeMode, then we will just return the imageID
-	imageID := fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SharedImageGallerySubscriptionID, imgStub.ImageDefinition, imageVersion)
-	return imageID, nil
+	// if the imageVersion is specified, then we will just return the imageID
+	return fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SharedImageGallerySubscriptionID, imgStub.GalleryResourceGroup, imgStub.GalleryName, imgStub.ImageDefinition, imageVersion), nil
 }
 
 // getImageCIG will return a community image gallery image url that has the shape of
 // /CommunityGalleries/{publicGalleryURL}/images/{communityImageName}/versions/{imageVersion}
 // The imageVersion can be set to "" to get the latest version of the image, and after a image version "" has been encountered
 // we cache the latest version of the image for imageExpirationInterval days(3d)
-func (p *Provider) getImageIDCIG(ctx context.Context, publicGalleryURL, communityImageName, imageVersion string) (string, error) {
+func (p *Provider) getImageIDCIG(publicGalleryURL, communityImageName, imageVersion string) (string, error) {
 	key := fmt.Sprintf(communityImageIDFormat, publicGalleryURL, communityImageName, imageVersion)
 	if imageID, ok := p.imageCache.Get(key); ok {
 		return imageID.(string), nil
 	}
 	// otherwise resolve it
 	if imageVersion == autoUpgradeMode {
-		imageVersion, err := p.latestNodeImageVersionCommmunity(ctx, publicGalleryURL, communityImageName)
+		imageVersion, err := p.latestNodeImageVersionCommmunity(publicGalleryURL, communityImageName)
 		if err != nil {
 			return "", err
 		}
@@ -155,7 +156,7 @@ func (p *Provider) getImageIDCIG(ctx context.Context, publicGalleryURL, communit
 	return imageID, nil
 }
 
-func (p *Provider) latestNodeImageVersionCommmunity(ctx context.Context, publicGalleryURL, communityImageName string) (string, error) {
+func (p *Provider) latestNodeImageVersionCommmunity(publicGalleryURL, communityImageName string) (string, error) {
 	pager := p.imageVersionsClient.NewListPager(p.location, publicGalleryURL, communityImageName, nil)
 	topImageVersionCandidate := armcompute.CommunityGalleryImageVersion{}
 	for pager.More() {
