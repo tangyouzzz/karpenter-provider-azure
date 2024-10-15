@@ -106,12 +106,14 @@ func (c *CloudProvider) isImageVersionDrifted(
 		return "", nil
 	}
 
-	vmImageID := lo.Ternary(*vm.Properties.StorageProfile.ImageReference.CommunityGalleryImageID == nil, vm.Properties.StorageProfile.ImageReference.ID, *vm.Properties.StorageProfile.ImageReference.CommunityGalleryImageID).(string)
+	CIGID := lo.FromPtr(vm.Properties.StorageProfile.ImageReference.CommunityGalleryImageID)
+	SIGID := lo.FromPtr(vm.Properties.StorageProfile.ImageReference.ID)
+	vmImageID := lo.Ternary(SIGID != "", SIGID, CIGID)
 
-	var imageStub *imagefamily.DefaultImageOutput
+	var imageStub imagefamily.DefaultImageOutput
 	imageStub.PopulateImageTraitsFromID(vmImageID)
 
-	expectedImageID, err := c.imageProvider.GetLatestImageID(ctx, *imageStub, nodeClass.Spec.GetImageVersion())
+	expectedImageID, err := c.imageProvider.GetLatestImageID(ctx, imageStub, nodeClass.Spec.GetImageVersion())
 	if err != nil {
 		return "", err
 	}

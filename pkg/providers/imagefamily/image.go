@@ -85,7 +85,7 @@ func (p *Provider) GetLatestImageID(ctx context.Context, defaultImage DefaultIma
 		return p.getImageIDSIG(ctx, defaultImage, imageVersion)
 	}
 	// Self Hosted Karpenter will use the Community Image Galleries, which are public and have lower scaling limits
-	return p.getImageIDCIG(ctx, defaultImage.PublicGalleryURL, defaultImage.ImageDefinition, imageVersion)
+	return p.getImageIDCIG(defaultImage.PublicGalleryURL, defaultImage.ImageDefinition, imageVersion)
 }
 
 func (p *Provider) KubeServerVersion(ctx context.Context) (string, error) {
