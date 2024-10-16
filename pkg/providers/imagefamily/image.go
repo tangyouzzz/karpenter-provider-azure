@@ -146,11 +146,11 @@ func (p *Provider) getImageIDCIG(publicGalleryURL, communityImageName, imageVers
 	}
 	// otherwise resolve it
 	if imageVersion == autoUpgradeMode {
-		imageVersion, err := p.latestNodeImageVersionCommmunity(publicGalleryURL, communityImageName)
+		imageVer, err := p.latestNodeImageVersionCommmunity(publicGalleryURL, communityImageName)
 		if err != nil {
 			return "", err
 		}
-		imageID := BuildImageIDCIG(publicGalleryURL, communityImageName, imageVersion)
+		imageID := BuildImageIDCIG(publicGalleryURL, communityImageName, imageVer)
 		p.imageCache.Set(key, imageID, imageExpirationInterval)
 		return imageID, nil
 	}
