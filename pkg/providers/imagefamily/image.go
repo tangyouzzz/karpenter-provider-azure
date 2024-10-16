@@ -112,7 +112,7 @@ func (p *Provider) KubeServerVersion(ctx context.Context) (string, error) {
 // If the imageVersion is set to "", then we will cache the latest version of the image for imageExpirationInterval days(3d) for all imageDefinitions
 // and reuse that get of the latest version of the image for 3d.
 func (p *Provider) getImageIDSIG(ctx context.Context, imgStub DefaultImageOutput, imageVersion string) (string, error) {
-	key := fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SharedImageGallerySubscriptionID, imgStub.GalleryResourceGroup, imgStub.GalleryName, imgStub.ImageDefinition, imageVersion)
+	key := fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SIGSubscriptionID, imgStub.GalleryResourceGroup, imgStub.GalleryName, imgStub.ImageDefinition, imageVersion)
 	if imageID, ok := p.imageCache.Get(key); ok {
 		return imageID.(string), nil
 	}
@@ -122,7 +122,7 @@ func (p *Provider) getImageIDSIG(ctx context.Context, imgStub DefaultImageOutput
 			return "", err
 		}
 		for _, version := range versions.Values {
-			imageID := fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SharedImageGallerySubscriptionID, imgStub.GalleryResourceGroup, imgStub.GalleryName, imgStub.ImageDefinition, version.Version)
+			imageID := fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SIGSubscriptionID, imgStub.GalleryResourceGroup, imgStub.GalleryName, imgStub.ImageDefinition, version.Version)
 			p.imageCache.Set(key, imageID, imageExpirationInterval)
 		}
 		// return the latest version of the image from the cache after we have caached all of the imageDefinitions
@@ -132,7 +132,7 @@ func (p *Provider) getImageIDSIG(ctx context.Context, imgStub DefaultImageOutput
 		return "", fmt.Errorf("failed to get the latest version of the image %s", imgStub.ImageDefinition)
 	}
 	// if the imageVersion is specified, then we will just return the imageID
-	return fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SharedImageGallerySubscriptionID, imgStub.GalleryResourceGroup, imgStub.GalleryName, imgStub.ImageDefinition, imageVersion), nil
+	return fmt.Sprintf(sharedImageGalleryImageIDFormat, options.FromContext(ctx).SIGSubscriptionID, imgStub.GalleryResourceGroup, imgStub.GalleryName, imgStub.ImageDefinition, imageVersion), nil
 }
 
 // getImageCIG will return a community image gallery image url that has the shape of
