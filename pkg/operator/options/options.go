@@ -95,7 +95,7 @@ func (o *Options) AddFlags(fs *coreoptions.FlagSet) {
 	fs.Var(newNodeIdentitiesValue(env.WithDefaultString("NODE_IDENTITIES", ""), &o.NodeIdentities), "node-identities", "User assigned identities for nodes.")
 	fs.StringVar(&o.NodeResourceGroup, "node-resource-group", env.WithDefaultString("AZURE_NODE_RESOURCE_GROUP", ""), "[REQUIRED] the resource group created and managed by AKS where the nodes live")
 	fs.BoolVar(&o.ManagedKarpenter, "managed-karpenter", env.WithDefaultBool("MANAGED_KARPENTER", false), "Whether Karpenter is managed by AKS or not.")
-	fs.StringVar(&o.SharedImageGallerySubscriptionID, "shared-image-gallery-subscription-id", env.WithDefaultString("SHARED_IMAGE_GALLERY_SUBSCRIPTION_ID", ""), "The subscription ID of the shared image gallery. Only required alongside managed-karpenter.")
+	fs.StringVar(&o.SharedImageGallerySubscriptionID, "shared-image-gallery-subscription-id", env.WithDefaultString("SHARED_IMAGE_GALLERY_SUBSCRIPTION_ID", ""), "The subscription ID of the shared image gallery.")
 }
 
 func (o Options) GetAPIServerName() string {
