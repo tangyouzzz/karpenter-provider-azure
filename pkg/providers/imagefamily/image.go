@@ -156,7 +156,7 @@ func (p *Provider) getImageIDCIG(ctx context.Context, publicGalleryURL, communit
 				img, err := p.imageVersionsClient.Get(ctx, p.location, publicGalleryURL, version.SKU, version.Version, nil)
 				if err == nil && lo.FromPtr(img.Identifier.UniqueID) != "" {
 					cacheKey := fmt.Sprintf(communityImageIDFormat, publicGalleryURL, version.SKU, autoUpgradeMode)
-					cacheValue := lo.FromPtr(img.Identifier.UniqueID)
+					cacheValue := fmt.Sprintf(communityImageIDFormat, publicGalleryURL, version.SKU, version.Version)
 					p.imageCache.Set(cacheKey, cacheValue, imageExpirationInterval)
 				}
 			}
